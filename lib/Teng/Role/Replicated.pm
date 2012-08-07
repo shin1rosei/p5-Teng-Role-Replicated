@@ -145,9 +145,45 @@ Teng::Role::Replicated - Replicated database support for Teng
 
 =head1 SYNOPSIS
 
-  use Teng::Role::Replicated;
+  package MyTeng;
+  use parent 'Teng';
+
+  use Any::Moose;
+  with 'Teng::Role::Replicated';
+
+
+  my $teng = MyTeng->new([
+    connect_info       => [...], # master db connect info
+    slave_connect_info => [...], # slave db connect info
+  ])
+
+  $teng->single(...);        # for slave db
+  $teng->insert(...);        # for master db
+
+  {
+    my $scope = $teng->force_master_scope;
+    $teng->search(...)->all; # for master db
+    $scope->end;
+    $teng->search(...)->all; # for slave db
+  }
+
+  {
+    my $txn = $teng->txn_scope;
+    $teng->search(...)->all; # for master db
+    $teng->insert(...);      # for master db
+    $txn->commit;
+    $teng->search(...)->all; # for slave db
+  }
 
 =head1 DESCRIPTION
+
+=head1 METHODS
+
+=head2 force_master_scope
+
+return Teng::Role::Replicated::ScopeGuard instance. 
+
+As long as this instance is alive or is not called "end" method, it does not executed SQL to slave. 
 
 =head1 AUTHOR
 
@@ -157,7 +193,12 @@ Shinichiro Sei E<lt>shin1rosei@kayac.comE<gt>
 
 =head1 LICENSE
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
+copyright (c) 2012 kayac inc. all rights reserved.
+
+this program is free software; you can redistribute
+it and/or modify it under the same terms as perl itself.
+
+the full text of the license can be found in the
+license file included with this module.
 
 =cut
