@@ -67,5 +67,7 @@ is ref $t[0], 't::Teng::Row::Foo';
 is scalar @{[ $teng->search('foo')->all ]}, 1;
 
 
+$foo = $teng->insert(foo => { id => 10 });
+ok $foo, 'insert and refetch';
 
 done_testing;

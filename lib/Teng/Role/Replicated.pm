@@ -54,6 +54,17 @@ around new => sub {
     $slave_setting->{skip_slave}   = 1;
     $self->slave($class->$orig($slave_setting));
 
+    $self->meta->add_around_method_modifier(
+        # insert method contain refetch
+        insert => sub {
+            my $orig = shift;
+            my $me   = shift;
+
+            my $scope = $me->force_master_scope;
+            return $me->$orig(@_);
+        },
+    );
+
     for my $method (qw/single search_named search_by_sql/, @{$args{slave_methods}}) {
         $self->meta->add_around_method_modifier(
             $method => sub {
